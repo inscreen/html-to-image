@@ -108,13 +108,21 @@ function px(node: HTMLElement, styleProperty: string) {
 export function getNodeWidth(node: HTMLElement) {
   const leftBorder = px(node, 'border-left-width')
   const rightBorder = px(node, 'border-right-width')
-  return node.clientWidth + leftBorder + rightBorder
+  return (
+    (node.getBoundingClientRect()?.width || node.clientWidth) +
+    leftBorder +
+    rightBorder
+  )
 }
 
 export function getNodeHeight(node: HTMLElement) {
   const topBorder = px(node, 'border-top-width')
   const bottomBorder = px(node, 'border-bottom-width')
-  return node.clientHeight + topBorder + bottomBorder
+  return (
+    (node.getBoundingClientRect()?.height || node.clientHeight) +
+    topBorder +
+    bottomBorder
+  )
 }
 
 export function getPixelRatio() {

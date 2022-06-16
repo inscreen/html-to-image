@@ -88,14 +88,20 @@ function px(node, styleProperty) {
     return parseFloat(val.replace('px', ''));
 }
 export function getNodeWidth(node) {
+    var _a;
     const leftBorder = px(node, 'border-left-width');
     const rightBorder = px(node, 'border-right-width');
-    return node.clientWidth + leftBorder + rightBorder;
+    return ((((_a = node.getBoundingClientRect()) === null || _a === void 0 ? void 0 : _a.width) || node.clientWidth) +
+        leftBorder +
+        rightBorder);
 }
 export function getNodeHeight(node) {
+    var _a;
     const topBorder = px(node, 'border-top-width');
     const bottomBorder = px(node, 'border-bottom-width');
-    return node.clientHeight + topBorder + bottomBorder;
+    return ((((_a = node.getBoundingClientRect()) === null || _a === void 0 ? void 0 : _a.height) || node.clientHeight) +
+        topBorder +
+        bottomBorder);
 }
 export function getPixelRatio() {
     let ratio;
