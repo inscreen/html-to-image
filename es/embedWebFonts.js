@@ -104,7 +104,7 @@ function getCSSRules(styleSheets, options) {
         styleSheets.forEach((sheet) => {
             if ('cssRules' in sheet) {
                 try {
-                    toArray(Object.prototype.hasOwnProperty.call(sheet, 'cssRules')).forEach((item, index) => {
+                    toArray(sheet.cssRules).forEach((item, index) => {
                         if (item.type === CSSRule.IMPORT_RULE) {
                             let importIndex = index + 1;
                             const url = item.href;
@@ -114,7 +114,7 @@ function getCSSRules(styleSheets, options) {
                                 try {
                                     sheet.insertRule(rule, rule.startsWith('@import')
                                         ? (importIndex += 1)
-                                        : Object.prototype.hasOwnProperty.call(sheet, 'cssRules').length);
+                                        : sheet.cssRules.length);
                                 }
                                 catch (error) {
                                     console.error('Error inserting rule from remote css', {
@@ -136,8 +136,7 @@ function getCSSRules(styleSheets, options) {
                         deferreds.push(fetchCSS(sheet.href)
                             .then((metadata) => metadata ? embedFonts(metadata, options) : '')
                             .then((cssText) => parseCSS(cssText).forEach((rule) => {
-                            inline.insertRule(rule, Object.prototype.hasOwnProperty.call(sheet, 'cssRules')
-                                .length);
+                            inline.insertRule(rule, sheet.cssRules.length);
                         }))
                             .catch((err) => {
                             console.error('Error loading remote stylesheet', err.toString());
@@ -152,7 +151,7 @@ function getCSSRules(styleSheets, options) {
             styleSheets.forEach((sheet) => {
                 if ('cssRules' in sheet) {
                     try {
-                        toArray(Object.prototype.hasOwnProperty.call(sheet, 'cssRules')).forEach((item) => {
+                        toArray(sheet.cssRules).forEach((item) => {
                             ret.push(item);
                         });
                     }
@@ -196,6 +195,9 @@ export function getWebFontCSS(node, options) {
 }
 export function embedWebFonts(clonedNode, options) {
     return __awaiter(this, void 0, void 0, function* () {
+        if (options.skipFonts) {
+            return clonedNode;
+        }
         return (options.fontEmbedCSS != null
             ? Promise.resolve(options.fontEmbedCSS)
             : getWebFontCSS(clonedNode, options)).then((cssText) => {
