@@ -125,39 +125,37 @@ async function getCSSRules(
   styleSheets.forEach((sheet) => {
     if ('cssRules' in sheet) {
       try {
-        toArray<CSSRule>(
-          Object.prototype.hasOwnProperty.call(sheet, 'cssRules'),
-        ).forEach((item: CSSRule, index: number) => {
-          if (item.type === CSSRule.IMPORT_RULE) {
-            let importIndex = index + 1
-            const url = (item as CSSImportRule).href
-            const deferred = fetchCSS(url)
-              .then((metadata) =>
-                metadata ? embedFonts(metadata, options) : '',
-              )
-              .then((cssText) =>
-                parseCSS(cssText).forEach((rule) => {
-                  try {
-                    sheet.insertRule(
-                      rule,
-                      rule.startsWith('@import')
-                        ? (importIndex += 1)
-                        : Object.prototype.hasOwnProperty.call(
-                            sheet,
-                            'cssRules',
-                          ).length,
-                    )
-                  } catch (error) {
-                    console.error('Error inserting rule from remote css', {
-                      rule,
-                      error,
-                    })
-                  }
-                }),
-              )
-              .catch((e) => {
-                console.error('Error loading remote css', e.toString())
-              })
+        toArray<CSSRule>(sheet.hasOwnProperty('cssRules')).forEach(
+          (item: CSSRule, index: number) => {
+            if (item.type === CSSRule.IMPORT_RULE) {
+              let importIndex = index + 1
+              const url = (item as CSSImportRule).href
+              const deferred = fetchCSS(url)
+                .then((metadata) =>
+                  metadata ? embedFonts(metadata, options) : '',
+                )
+                .then((cssText) =>
+                  parseCSS(cssText).forEach((rule) => {
+                    try {
+                      sheet.insertRule(
+                        rule,
+                        rule.startsWith('@import')
+                          ? (importIndex += 1)
+                          : // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            sheet.hasOwnProperty('cssRules').length,
+                      )
+                    } catch (error) {
+                      console.error('Error inserting rule from remote css', {
+                        rule,
+                        error,
+                      })
+                    }
+                  }),
+                )
+                .catch((e) => {
+                  console.error('Error loading remote css', e.toString())
+                })
 
             deferreds.push(deferred)
           }
@@ -175,8 +173,9 @@ async function getCSSRules(
                 parseCSS(cssText).forEach((rule) => {
                   inline.insertRule(
                     rule,
-                    Object.prototype.hasOwnProperty.call(sheet, 'cssRules')
-                      .length,
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    sheet.hasOwnProperty('cssRules').length,
                   )
                 }),
               )
