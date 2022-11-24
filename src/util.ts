@@ -219,7 +219,6 @@ export async function nodeToDataURL(
   foreignObject.setAttribute('externalResourcesRequired', 'true')
 
   svg.appendChild(foreignObject)
-  foreignObject.appendChild(node)
-
+  foreignObject.appendChild(node);
   return svgToDataURL(svg)
 }
