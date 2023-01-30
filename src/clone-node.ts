@@ -85,7 +85,7 @@ async function cloneChildren<T extends HTMLElement>(
     (deferred, child) =>
       deferred
         .then(() => cloneNode(child, options))
-        .then((clonedChild) => {
+        .then((clonedChild: HTMLElement | null) => {
           if (clonedChild) {
             clonedNode.appendChild(clonedChild)
           }
@@ -96,63 +96,34 @@ async function cloneChildren<T extends HTMLElement>(
   return clonedNode
 }
 
-/** DOM in which we can deduce the default value of properties without being polluted by the global namespace */
-let shadowDom: ShadowRoot | null = null
-
-export function tryInitShadowDom() {
-  if (shadowDom == null) {
-    let shadowContainer = document.createElement('div')
-    shadowContainer.style.display = 'none'
-    shadowDom = shadowContainer.attachShadow({ mode: 'open' })
-    const shadowStyle = document.createElement('style')
-    shadowStyle.innerHTML = ':host{all:initial;} *{all:initial;}'
-    shadowDom.appendChild(shadowStyle)
-    document.body.appendChild(shadowContainer)
-  }
-}
-
-function cloneCSSStyle<T extends HTMLElement>(
-  nativeNode: T,
-  clonedNode: T,
-  defaultZone: ShadowRoot,
-) {
+function cloneCSSStyle<T extends HTMLElement>(nativeNode: T, clonedNode: T) {
   const targetStyle = clonedNode.style
   if (!targetStyle) {
     return
   }
 
   const sourceStyle = window.getComputedStyle(nativeNode)
-  const defaultElement = document.createElement(nativeNode.tagName)
-  defaultZone.appendChild(defaultElement) // we need to add it to the page to get the default computed styles (otherwise it's empty)
-  const defaultStyle = window.getComputedStyle(defaultElement)
   if (sourceStyle.cssText) {
     targetStyle.cssText = sourceStyle.cssText
     targetStyle.transformOrigin = sourceStyle.transformOrigin
   } else {
     toArray<string>(sourceStyle).forEach((name) => {
-      if (name.startsWith('--')) {
-        // No need to add those. CSS variables will be replaced by the engine.
-        return
-      }
       let value = sourceStyle.getPropertyValue(name)
-      const defaultValue = defaultStyle.getPropertyValue(name)
       if (name === 'font-size' && value.endsWith('px')) {
         const reducedFont =
           Math.floor(parseFloat(value.substring(0, value.length - 2))) - 0.1
-        if (reducedFont >= 0) {
-          value = `${reducedFont}px`
-        }
+        value = `${reducedFont}px`
       }
-      if (defaultValue != value && value != 'initial') {
-        targetStyle.setProperty(
-          name,
-          value,
-          sourceStyle.getPropertyPriority(name),
-        )
+      if (name === 'd' && clonedNode.getAttribute('d')) {
+        value = `path(${clonedNode.getAttribute('d')})`
       }
+      targetStyle.setProperty(
+        name,
+        value,
+        sourceStyle.getPropertyPriority(name),
+      )
     })
   }
-  defaultZone.removeChild(defaultElement)
 }
 
 function cloneInputValue<T extends HTMLElement>(nativeNode: T, clonedNode: T) {
@@ -180,7 +151,7 @@ function cloneSelectValue<T extends HTMLElement>(nativeNode: T, clonedNode: T) {
 
 function decorate<T extends HTMLElement>(nativeNode: T, clonedNode: T): T {
   if (clonedNode instanceof Element) {
-    cloneCSSStyle(nativeNode, clonedNode, shadowDom!) // shadowDom should be initilized in every entry function
+    cloneCSSStyle(nativeNode, clonedNode)
     clonePseudoElements(nativeNode, clonedNode)
     cloneInputValue(nativeNode, clonedNode)
     cloneSelectValue(nativeNode, clonedNode)
@@ -240,25 +211,14 @@ export async function cloneNode<T extends HTMLElement>(
   node: T,
   options: Options,
   isRoot?: boolean,
-): Promise<HTMLElement | null> {
+): Promise<T | null> {
   if (!isRoot && options.filter && !options.filter(node)) {
     return null
   }
 
   return Promise.resolve(node)
-    .then((clonedNode) => cloneSingleNode(clonedNode, options))
+    .then((clonedNode) => cloneSingleNode(clonedNode, options) as Promise<T>)
     .then((clonedNode) => cloneChildren(node, clonedNode, options))
-    .then((clonedNode) => {
-      const everyStyle = options.everyStyle
-      if (everyStyle !== undefined && node.style !== undefined) {
-        Object.keys(everyStyle).forEach((cssPropertyName) => {
-          clonedNode.style.setProperty(
-            cssPropertyName,
-            everyStyle[cssPropertyName],
-            node.style.getPropertyPriority(cssPropertyName),
-          )
-        })
-      }
-      return decorate(node, clonedNode)
-    })
+    .then((clonedNode) => decorate(node, clonedNode))
+    .then((clonedNode) => ensureSVGSymbols(clonedNode, options))
 }
