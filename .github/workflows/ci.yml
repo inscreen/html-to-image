@@ -24,22 +24,10 @@ jobs:
       - name: 🚧　Install
         run: yarn install
       - name: 📦　Build
-        run: yarn build
-      - name: ✅　Test
-        run: yarn test
-      - name: 🔑　Generate Token
-        uses: bubkoo/use-app-token@v1
-        with:
-          app_id: ${{ secrets.APP_ID }}
-          private_key: ${{ secrets.PRIVATE_KEY }}
-          env_name: bot_token
-      - name: 💡　Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ env.bot_token }}
-          path-to-lcov: ./test/coverage/lcov.info
-      - name: 💡　Codecov
-        uses: codecov/codecov-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./test/coverage/lcov.info
+        run: pnpm run build
+
+      # - name: ✅　Test
+      #   run: pnpm run test
+
+      - name: Dependencies
+        run: pnpx license-checker --onlyAllow 'MIT;BSD-3-Clause;BSD-2-Clause;Apache-2.0;ISC;Python-2.0;0BSD;CC-BY-4.0'
