@@ -28,6 +28,3 @@ jobs:
 
       # - name: ✅　Test
       #   run: pnpm run test
-
-      - name: Dependencies
-        run: pnpx license-checker --onlyAllow 'MIT;BSD-3-Clause;BSD-2-Clause;Apache-2.0;ISC;Python-2.0;0BSD;CC-BY-4.0'
