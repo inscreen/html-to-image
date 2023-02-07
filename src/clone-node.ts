@@ -170,12 +170,35 @@ function cloneSelectValue<T extends HTMLElement>(nativeNode: T, clonedNode: T) {
   }
 }
 
+function cloneScrollPosition<T extends HTMLElement>(
+  nativeNode: T,
+  clonedNode: T,
+) {
+  // If element is not scrolled, we don't need to move the children.
+  if (nativeNode.scrollTop === 0 && nativeNode.scrollLeft === 0) {
+    return
+  }
+
+  for (let i = 0; i < clonedNode.children.length; i++) {
+    const child = clonedNode.children[i] as HTMLElement
+    if (!('style' in child)) {
+      return
+    }
+
+    // For each of the children, get the current transform and translate it with the native node's scroll position.
+    child.style.transform = new DOMMatrix(child.style.transform)
+      .translateSelf(-nativeNode.scrollLeft, -nativeNode.scrollTop)
+      .toString()
+  }
+}
+
 function decorate<T extends HTMLElement>(nativeNode: T, clonedNode: T): T {
   if (isInstanceOfElement(clonedNode, Element)) {
     cloneCSSStyle(nativeNode, clonedNode)
     clonePseudoElements(nativeNode, clonedNode)
     cloneInputValue(nativeNode, clonedNode)
     cloneSelectValue(nativeNode, clonedNode)
+    cloneScrollPosition(nativeNode, clonedNode)
   }
 
   return clonedNode
