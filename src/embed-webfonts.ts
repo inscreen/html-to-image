@@ -109,8 +109,15 @@ async function getCSSRules(
   const deferreds: Promise<number | void>[] = []
 
   // First loop inlines imports
-  styleSheets.forEach((sheet) => {
-    if ('cssRules' in sheet) {
+  styleSheets
+    .filter((sheet) => {
+      try {
+        return 'cssRules' in sheet && sheet.cssRules
+      } catch (error) {
+        return false
+      }
+    })
+    .forEach((sheet) => {
       try {
         toArray<CSSRule>(sheet.cssRules || []).forEach((item, index) => {
           if (item.type === CSSRule.IMPORT_RULE) {
@@ -161,8 +168,7 @@ async function getCSSRules(
         }
         console.error('Error inlining remote css file', e)
       }
-    }
-  })
+    })
 
   return Promise.all(deferreds).then(() => {
     // Second loop parses rules
