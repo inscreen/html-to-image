@@ -30,6 +30,7 @@
     "build:umd": "rollup -c --bundleConfigAsCjs",
     "build": "run-s build:esm build:cjs build:umd",
     "prebuild": "run-s lint clean",
+    "start": "pnpx http-server",
     "test": "karma start",
     "test:watch": "karma start --single-run=false --auto-watch",
     "test:debug": "karma start --browsers=Chrome --single-run=false --auto-watch --debug",
