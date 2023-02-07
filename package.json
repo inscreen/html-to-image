@@ -1,5 +1,5 @@
 {
-  "name": "html-to-image",
+  "name": "@inscreen/html-to-image",
   "version": "1.11.12",
   "description": "Generates an image from a DOM node using HTML5 canvas and SVG.",
   "main": "lib/index.js",
@@ -56,12 +56,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bubkoo/html-to-image.git"
+    "url": "git+https://github.com/inscreen/html-to-image.git"
   },
   "bugs": {
-    "url": "https://github.com/bubkoo/html-to-image/issues"
+    "url": "https://github.com/inscreen/html-to-image/issues"
   },
-  "homepage": "https://github.com/bubkoo/html-to-image#readme",
+  "homepage": "https://github.com/inscreen/html-to-image#readme",
   "devDependencies": {
     "@bubkoo/commitlint-config": "^1.0.2",
     "@bubkoo/rollup-config": "^1.2.1",
