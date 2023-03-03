@@ -35,7 +35,6 @@ async function cloneIFrameElement(iframe: HTMLIFrameElement) {
       return (await cloneNode(
         iframe.contentDocument.body,
         {},
-        true,
       )) as HTMLBodyElement
     }
   } catch {
@@ -213,9 +212,8 @@ function decorate<T extends HTMLElement>(nativeNode: T, clonedNode: T): T {
 export async function cloneNode<T extends HTMLElement>(
   node: T,
   options: Options,
-  isRoot?: boolean,
 ): Promise<T | null> {
-  if (!isRoot && options.filter && !options.filter(node)) {
+  if (options.filter && !options.filter(node)) {
     return null
   }
 
