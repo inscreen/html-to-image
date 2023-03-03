@@ -44,6 +44,7 @@ async function cloneIFrameElement(iframe: HTMLIFrameElement) {
   return iframe.cloneNode(false) as HTMLIFrameElement
 }
 
+// TODO: make function synchronous
 async function cloneSingleNode<T extends HTMLElement>(
   node: T,
   options: Options,
@@ -191,18 +192,6 @@ function cloneScrollPosition<T extends HTMLElement>(
   }
 }
 
-function decorate<T extends HTMLElement>(nativeNode: T, clonedNode: T): T {
-  if (isInstanceOfElement(clonedNode, Element)) {
-    cloneCSSStyle(nativeNode, clonedNode)
-    clonePseudoElements(nativeNode, clonedNode)
-    cloneInputValue(nativeNode, clonedNode)
-    cloneSelectValue(nativeNode, clonedNode)
-    cloneScrollPosition(nativeNode, clonedNode)
-  }
-
-  return clonedNode
-}
-
 /**
  * TODO: re-add and optimise ensureSVGSymbols, run it as a "filter" - once per <use> tag
  * https://github.com/bubkoo/html-to-image/issues/341
@@ -212,13 +201,24 @@ function decorate<T extends HTMLElement>(nativeNode: T, clonedNode: T): T {
 export async function cloneNode<T extends HTMLElement>(
   node: T,
   options: Options,
-): Promise<T | null> {
+): Promise<HTMLElement | null> {
   if (options.filter && !options.filter(node)) {
     return null
   }
 
-  return Promise.resolve(node)
-    .then((clonedNode) => cloneSingleNode(clonedNode, options) as Promise<T>)
-    .then((clonedNode) => cloneChildren(node, clonedNode, options))
-    .then((clonedNode) => decorate(node, clonedNode))
+  const clonedNode = await cloneSingleNode(node, options)
+
+  cloneCSSStyle(node, clonedNode)
+
+  clonePseudoElements(node, clonedNode)
+
+  cloneInputValue(node, clonedNode)
+
+  cloneSelectValue(node, clonedNode)
+
+  await cloneChildren(node, clonedNode, options)
+
+  cloneScrollPosition(node, clonedNode)
+
+  return clonedNode
 }
