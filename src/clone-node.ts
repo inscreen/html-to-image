@@ -198,11 +198,28 @@ function cloneScrollPosition<T extends HTMLElement>(
  * on the original commit - it runs `clone.querySelectorAll('use')` on each node and `document.querySelector(id)` for each tag found
  */
 
-export async function cloneNode<T extends HTMLElement>(
+const isTextNode = (node: Node): node is Text => node.nodeType === 3 // Node.TEXT_NODE
+const isElementNode = (node: Node): node is HTMLElement => node.nodeType === 1 // Node.ELEMENT_NODE
+
+export async function cloneNode<T extends Node>(
   node: T,
   options: Options,
-): Promise<HTMLElement | null> {
+): Promise<Node | null> {
+  if (isTextNode(node)) {
+    return document.createTextNode(node.data)
+  }
+
+  if (!isElementNode(node)) {
+    return node.cloneNode(false) as HTMLElement
+  }
+
   if (options.filter && !options.filter(node)) {
+    return null
+  }
+
+  const style = window.getComputedStyle(node)
+
+  if (style.display === 'none') {
     return null
   }
 
