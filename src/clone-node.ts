@@ -107,13 +107,16 @@ async function cloneChildren<T extends HTMLElement>(
   return clonedNode
 }
 
-function cloneCSSStyle<T extends HTMLElement>(nativeNode: T, clonedNode: T) {
+function cloneCSSStyle<T extends HTMLElement>(
+  nativeNode: T,
+  clonedNode: T,
+  sourceStyle: CSSStyleDeclaration,
+) {
   const targetStyle = clonedNode.style
   if (!targetStyle) {
     return
   }
 
-  const sourceStyle = window.getComputedStyle(nativeNode)
   if (sourceStyle.cssText) {
     targetStyle.cssText = sourceStyle.cssText
     targetStyle.transformOrigin = sourceStyle.transformOrigin
@@ -219,13 +222,13 @@ export async function cloneNode<T extends Node>(
 
   const style = window.getComputedStyle(node)
 
-  if (style.display === 'none') {
+  if (style.getPropertyValue('display') === 'none') {
     return null
   }
 
   const clonedNode = await cloneSingleNode(node, options)
 
-  cloneCSSStyle(node, clonedNode)
+  cloneCSSStyle(node, clonedNode, style)
 
   clonePseudoElements(node, clonedNode)
 
