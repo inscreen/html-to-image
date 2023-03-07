@@ -1,8 +1,6 @@
 import type { Options } from './types'
 import { clonePseudoElements } from './clone-pseudos'
-import { createImage, toArray, isInstanceOfElement } from './util'
-import { getMimeType } from './mimes'
-import { resourceToDataURL } from './dataurl'
+import { toArray, isInstanceOfElement } from './util'
 
 function cloneCanvasElement(canvas: HTMLCanvasElement) {
   try {
@@ -19,21 +17,24 @@ function cloneCanvasElement(canvas: HTMLCanvasElement) {
   }
 }
 
-async function cloneVideoElement(video: HTMLVideoElement, options: Options) {
-  if (video.currentSrc) {
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
-    canvas.width = video.clientWidth
-    canvas.height = video.clientHeight
-    ctx?.drawImage(video, 0, 0, canvas.width, canvas.height)
-    const dataURL = canvas.toDataURL()
-    return createImage(dataURL)
+function cloneVideoElement(video: HTMLVideoElement) {
+  try {
+    let imgSrc
+    if (video.currentSrc) {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      canvas.width = video.clientWidth
+      canvas.height = video.clientHeight
+      ctx?.drawImage(video, 0, 0, canvas.width, canvas.height)
+      imgSrc = canvas.toDataURL()
+    }
+    const img = document.createElement('img')
+    img.src = imgSrc ?? video.poster
+    return img
+  } catch (e) {
+    console.error('Unable to clone video as it is tainted', video)
+    return null
   }
-
-  const poster = video.poster
-  const contentType = getMimeType(poster)
-  const dataURL = await resourceToDataURL(poster, contentType, options)
-  return createImage(dataURL)
 }
 
 async function cloneIFrameElement(iframe: HTMLIFrameElement) {
@@ -54,14 +55,13 @@ async function cloneIFrameElement(iframe: HTMLIFrameElement) {
 // TODO: make function synchronous
 async function cloneSingleNode<T extends HTMLElement>(
   node: T,
-  options: Options,
 ): Promise<HTMLElement | null> {
   if (isInstanceOfElement(node, HTMLCanvasElement)) {
     return cloneCanvasElement(node)
   }
 
   if (isInstanceOfElement(node, HTMLVideoElement)) {
-    return cloneVideoElement(node, options)
+    return cloneVideoElement(node)
   }
 
   if (isInstanceOfElement(node, HTMLIFrameElement)) {
@@ -233,7 +233,7 @@ export async function cloneNode<T extends Node>(
     return null
   }
 
-  const clonedNode = await cloneSingleNode(node, options)
+  const clonedNode = await cloneSingleNode(node)
 
   if (!clonedNode) {
     return null
