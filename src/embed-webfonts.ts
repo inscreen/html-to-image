@@ -1,5 +1,5 @@
 import type { Options } from './types'
-import { toArray } from './util'
+import { consoleError, toArray } from './util'
 import { fetchAsDataURL } from './dataurl'
 import { shouldEmbed, embedResources } from './embed-resources'
 
@@ -135,7 +135,7 @@ async function getCSSRules(
                         : sheet.cssRules.length,
                     )
                   } catch (error) {
-                    console.error('Error inserting rule from remote css', {
+                    consoleError('Error inserting rule from remote css', {
                       rule,
                       error,
                     })
@@ -143,7 +143,7 @@ async function getCSSRules(
                 }),
               )
               .catch((e) => {
-                console.error('Error loading remote css', e.toString())
+                consoleError('Error loading remote css', e.toString())
               })
 
             deferreds.push(deferred)
@@ -162,11 +162,11 @@ async function getCSSRules(
                 }),
               )
               .catch((err: unknown) => {
-                console.error('Error loading remote stylesheet', err)
+                consoleError('Error loading remote stylesheet', err)
               }),
           )
         }
-        console.error('Error inlining remote css file', e)
+        consoleError('Error inlining remote css file', e)
       }
     })
 
@@ -179,7 +179,7 @@ async function getCSSRules(
             ret.push(item)
           })
         } catch (e) {
-          console.error(`Error while reading CSS rules from ${sheet.href}`, e)
+          consoleError(`Error while reading CSS rules from ${sheet.href}`, e)
         }
       }
     })

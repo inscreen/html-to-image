@@ -1,4 +1,5 @@
 import { Options } from './types'
+import { consoleError } from './util'
 
 function getContentFromDataUrl(dataURL: string) {
   return dataURL.split(/,/)[1]
@@ -102,7 +103,7 @@ export async function resourceToDataURL(
     }
 
     if (msg) {
-      console.warn(msg)
+      consoleError(msg)
     }
   }
 

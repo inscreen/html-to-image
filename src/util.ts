@@ -233,3 +233,6 @@ export const isInstanceOfElement = <
 ): node is T['prototype'] => {
   return node instanceof (node.ownerDocument.defaultView as any)[instance.name]
 }
+
+export const consoleError = (...args: any[]) =>
+  console.error('[inScreen]', ...args)
