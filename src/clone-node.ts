@@ -1,6 +1,6 @@
 import type { Options } from './types'
 import { clonePseudoElements } from './clone-pseudos'
-import { toArray, isInstanceOfElement } from './util'
+import { toArray, isInstanceOfElement, consoleError } from './util'
 
 function cloneCanvasElement(canvas: HTMLCanvasElement) {
   try {
@@ -12,7 +12,7 @@ function cloneCanvasElement(canvas: HTMLCanvasElement) {
     img.src = dataURL
     return img
   } catch (e) {
-    console.error('Unable to inline canvas contents, canvas is tainted', canvas)
+    consoleError('Unable to inline canvas contents, canvas is tainted', canvas)
     return null
   }
 }
@@ -32,7 +32,7 @@ function cloneVideoElement(video: HTMLVideoElement) {
     img.src = imgSrc ?? video.poster
     return img
   } catch (e) {
-    console.error('Unable to clone video as it is tainted', video)
+    consoleError('Unable to clone video as it is tainted', video)
     return null
   }
 }
@@ -43,7 +43,7 @@ function cloneIFrameElement(iframe: HTMLIFrameElement) {
       return cloneNode(iframe.contentDocument.body, {}) as HTMLBodyElement
     }
   } catch {
-    console.error('Failed to clone iframe', iframe)
+    consoleError('Failed to clone iframe', iframe)
   }
 
   return iframe.cloneNode(false) as HTMLIFrameElement
