@@ -231,14 +231,5 @@ export const isInstanceOfElement = <
   node: Element | HTMLElement | SVGImageElement,
   instance: T,
 ): node is T['prototype'] => {
-  if (node instanceof instance) return true
-
-  const nodePrototype = Object.getPrototypeOf(node)
-
-  if (nodePrototype === null) return false
-
-  return (
-    nodePrototype.constructor.name === instance.name ||
-    isInstanceOfElement(nodePrototype, instance)
-  )
+  return node instanceof (node.ownerDocument.defaultView as any)[instance.name]
 }
