@@ -37,25 +37,19 @@ function cloneVideoElement(video: HTMLVideoElement) {
   }
 }
 
-async function cloneIFrameElement(iframe: HTMLIFrameElement) {
+function cloneIFrameElement(iframe: HTMLIFrameElement) {
   try {
     if (iframe?.contentDocument?.body) {
-      return (await cloneNode(
-        iframe.contentDocument.body,
-        {},
-      )) as HTMLBodyElement
+      return cloneNode(iframe.contentDocument.body, {}) as HTMLBodyElement
     }
   } catch {
-    // Failed to clone iframe
+    console.error('Failed to clone iframe', iframe)
   }
 
   return iframe.cloneNode(false) as HTMLIFrameElement
 }
 
-// TODO: make function synchronous
-async function cloneSingleNode<T extends HTMLElement>(
-  node: T,
-): Promise<HTMLElement | null> {
+function cloneSingleNode<T extends HTMLElement>(node: T): HTMLElement | null {
   if (isInstanceOfElement(node, HTMLCanvasElement)) {
     return cloneCanvasElement(node)
   }
@@ -74,11 +68,11 @@ async function cloneSingleNode<T extends HTMLElement>(
 const isSlotElement = (node: HTMLElement): node is HTMLSlotElement =>
   node.tagName != null && node.tagName.toUpperCase() === 'SLOT'
 
-async function cloneChildren<T extends HTMLElement>(
+function cloneChildren<T extends HTMLElement>(
   nativeNode: T,
   clonedNode: T,
   options: Options,
-): Promise<T> {
+): T {
   let children: T[] = []
 
   if (isSlotElement(nativeNode) && nativeNode.assignedNodes) {
@@ -99,17 +93,12 @@ async function cloneChildren<T extends HTMLElement>(
     return clonedNode
   }
 
-  await children.reduce(
-    (deferred, child) =>
-      deferred
-        .then(() => cloneNode(child, options))
-        .then((clonedChild: HTMLElement | null) => {
-          if (clonedChild) {
-            clonedNode.appendChild(clonedChild)
-          }
-        }),
-    Promise.resolve(),
-  )
+  for (let i = 0; i < children.length; i++) {
+    const clonedChild = cloneNode(children[i], options)
+    if (clonedChild) {
+      clonedNode.appendChild(clonedChild)
+    }
+  }
 
   return clonedNode
 }
@@ -211,10 +200,10 @@ function cloneScrollPosition<T extends HTMLElement>(
 const isTextNode = (node: Node): node is Text => node.nodeType === 3 // Node.TEXT_NODE
 const isElementNode = (node: Node): node is HTMLElement => node.nodeType === 1 // Node.ELEMENT_NODE
 
-export async function cloneNode<T extends Node>(
+export function cloneNode<T extends Node>(
   node: T,
   options: Options,
-): Promise<Node | null> {
+): Node | null {
   if (isTextNode(node)) {
     return document.createTextNode(node.data)
   }
@@ -233,7 +222,7 @@ export async function cloneNode<T extends Node>(
     return null
   }
 
-  const clonedNode = await cloneSingleNode(node)
+  const clonedNode = cloneSingleNode(node)
 
   if (!clonedNode) {
     return null
@@ -247,7 +236,7 @@ export async function cloneNode<T extends Node>(
 
   cloneSelectValue(node, clonedNode)
 
-  await cloneChildren(node, clonedNode, options)
+  cloneChildren(node, clonedNode, options)
 
   cloneScrollPosition(node, clonedNode)
 
