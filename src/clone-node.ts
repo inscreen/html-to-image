@@ -4,12 +4,19 @@ import { createImage, toArray, isInstanceOfElement } from './util'
 import { getMimeType } from './mimes'
 import { resourceToDataURL } from './dataurl'
 
-async function cloneCanvasElement(canvas: HTMLCanvasElement) {
-  const dataURL = canvas.toDataURL()
-  if (dataURL === 'data:,') {
-    return canvas.cloneNode(false) as HTMLCanvasElement
+function cloneCanvasElement(canvas: HTMLCanvasElement) {
+  try {
+    const dataURL = canvas.toDataURL()
+    if (dataURL === 'data:,') {
+      return canvas.cloneNode(false) as HTMLCanvasElement
+    }
+    const img = document.createElement('img')
+    img.src = dataURL
+    return img
+  } catch (e) {
+    console.error('Unable to inline canvas contents, canvas is tainted', canvas)
+    return null
   }
-  return createImage(dataURL)
 }
 
 async function cloneVideoElement(video: HTMLVideoElement, options: Options) {
@@ -48,7 +55,7 @@ async function cloneIFrameElement(iframe: HTMLIFrameElement) {
 async function cloneSingleNode<T extends HTMLElement>(
   node: T,
   options: Options,
-): Promise<HTMLElement> {
+): Promise<HTMLElement | null> {
   if (isInstanceOfElement(node, HTMLCanvasElement)) {
     return cloneCanvasElement(node)
   }
@@ -227,6 +234,10 @@ export async function cloneNode<T extends Node>(
   }
 
   const clonedNode = await cloneSingleNode(node, options)
+
+  if (!clonedNode) {
+    return null
+  }
 
   cloneCSSStyle(node, clonedNode, style)
 
