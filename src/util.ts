@@ -56,13 +56,7 @@ export function delay<T>(ms: number) {
 }
 
 export function toArray<T>(arrayLike: any): T[] {
-  const arr: T[] = []
-
-  for (let i = 0, l = arrayLike.length; i < l; i++) {
-    arr.push(arrayLike[i])
-  }
-
-  return arr
+  return Array.from(arrayLike)
 }
 
 function px(node: HTMLElement, styleProperty: string) {
