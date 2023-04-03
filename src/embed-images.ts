@@ -1,6 +1,6 @@
 import { Options } from './types'
 import { embedResources } from './embed-resources'
-import { toArray, isInstanceOfElement } from './util'
+import { toArray, isInstanceOfElement, consoleError } from './util'
 import { isDataUrl, resourceToDataURL } from './dataurl'
 import { getMimeType } from './mimes'
 
@@ -53,26 +53,30 @@ async function embedImageNode<T extends HTMLElement | SVGImageElement>(
   const url = isImageElement ? clonedNode.src : clonedNode.href.baseVal
 
   const dataURL = await resourceToDataURL(url, getMimeType(url), options)
-  await new Promise((resolve, reject) => {
-    clonedNode.onload = resolve
-    clonedNode.onerror = reject
+  try {
+    await new Promise((resolve, reject) => {
+      clonedNode.onload = resolve
+      clonedNode.onerror = reject
 
-    const image = clonedNode as HTMLImageElement
-    if (image.decode) {
-      image.decode = resolve as any
-    }
+      const image = clonedNode as HTMLImageElement
+      if (image.decode) {
+        image.decode = resolve as any
+      }
 
-    if (image.loading === 'lazy') {
-      image.loading = 'eager'
-    }
+      if (image.loading === 'lazy') {
+        image.loading = 'eager'
+      }
 
-    if (isImageElement) {
-      clonedNode.srcset = ''
-      clonedNode.src = dataURL
-    } else {
-      clonedNode.href.baseVal = dataURL
-    }
-  })
+      if (isImageElement) {
+        clonedNode.srcset = ''
+        clonedNode.src = dataURL
+      } else {
+        clonedNode.href.baseVal = dataURL
+      }
+    })
+  } catch {
+    consoleError(`Failed to fetch image: ${url}`)
+  }
 }
 
 async function embedChildren<T extends HTMLElement>(
