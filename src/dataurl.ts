@@ -74,6 +74,11 @@ export async function resourceToDataURL(
     return cache[cacheKey]
   }
 
+  if (options.useCorsProxy) {
+    // eslint-disable-next-line no-param-reassign
+    resourceUrl = options.customCorsProxyUrl + encodeURIComponent(resourceUrl)
+  }
+
   // ref: https://developer.mozilla.org/en/docs/Web/API/XMLHttpRequest/Using_XMLHttpRequest#Bypassing_the_cache
   if (options.cacheBust) {
     // eslint-disable-next-line no-param-reassign
