@@ -91,4 +91,8 @@ export interface Options {
    *
    */
   fetchRequestInit?: RequestInit
+
+  useCorsProxy?: boolean
+
+  customCorsProxyUrl?: string
 }
