@@ -172,8 +172,15 @@ async function getCSSRules(
 
   return Promise.all(deferreds).then(() => {
     // Second loop parses rules
-    styleSheets.forEach((sheet) => {
-      if ('cssRules' in sheet) {
+    styleSheets
+      .filter((sheet) => {
+        try {
+          return 'cssRules' in sheet && sheet.cssRules
+        } catch (error) {
+          return false
+        }
+      })
+      .forEach((sheet) => {
         try {
           toArray<CSSStyleRule>(sheet.cssRules || []).forEach((item) => {
             ret.push(item)
@@ -181,8 +188,7 @@ async function getCSSRules(
         } catch (e) {
           consoleError(`Error while reading CSS rules from ${sheet.href}`, e)
         }
-      }
-    })
+      })
 
     return ret
   })
